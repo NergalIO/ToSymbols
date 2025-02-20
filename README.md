@@ -6,6 +6,7 @@ Converting images, camera view, mp4 videos (with sound) to symbols representatio
 python main.py
 ## Program usage
 The program is built on the terminal core, use help to view commands.
+![image](https://github.com/user-attachments/assets/b41c5173-6119-40e8-9ff5-2ed4fda1950e)
 ## Command running example:
 show_camera
 video_to_symbols|path=C:/Videos/video.mp4|new_height=128::int
