@@ -37,15 +37,36 @@ elif sys.platform == "win32":
 
 def show_camera(new_height: int) -> None:
     camera = CameraController()
-    
-    while True:
-        if keyboard.is_pressed("q"):
-            break
-        
-        frame = camera.get_current_frame()
-        symbols = handler.frame_to_ascii(frame, new_height)
+    clear()
+    try:
+        while True:
+            try:
+                if keyboard.is_pressed("q"):
+                    break
+            
+                frame = camera.get_current_frame()
+                frame = handler.frame_to_ascii(frame, new_height)
+                camera._fps_counter.tick()
+                
+                sys.stdout.write("\033[F" * new_height)
+                sys.stdout.write(frame)
+                sys.stdout.write(
+                    f"\n{' ' * 100}\nStatistics:{' ' * 100}\n{' ' * 100}\nFrames: {camera.current_frame}{' ' * 100}\n" +\
+                    f"Current FPS: {camera.current_fps:.1f}, Render FPS: {camera.render_fps:.1f}{' ' * 100}\n" +\
+                    f"Missed frames: {camera.missed_frames}{' ' * 100}"
+                )
+                sys.stdout.flush()
+            except TypeError:
+                camera.add_missed_frames()
+                continue
+    except Exception as e:
+        print(e)
+    finally:
         clear()
-        print(symbols, flush=True)
+        print("Statistics:")
+        print(f"\tFrames: {camera.current_frame}")
+        print(f"\tMissed Frames: {camera.missed_frames}")
+        print(f"\tAvarage FPS: {camera.avarage_fps}")
 
 
 def image_to_symbols(path: str, new_height: int) -> None:
@@ -94,8 +115,7 @@ def video_to_symbols(path: str, new_height: int, click_time: int) -> None:
                 video.add_missed_frames()
                 video.play_audio_frame()
                 continue
-            except Exception as e:
-                raise e
+
     finally:
         video.stop()
         clear()
