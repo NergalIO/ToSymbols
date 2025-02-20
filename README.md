@@ -10,3 +10,6 @@ The program is built on the terminal core, use help to view commands.
 ## Command running example:
 show_camera
 video_to_symbols|path=C:/Videos/video.mp4|new_height=128::int
+![image](https://github.com/user-attachments/assets/cc2079a6-2d5c-4285-96cf-6044f0a18e24)
+
+
