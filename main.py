@@ -9,8 +9,8 @@
 from CameraController import CameraController
 import keyboard
 import handler
-import mouse
 import core
+import tqdm
 import sys
 import os
 
@@ -75,47 +75,44 @@ def image_to_symbols(path: str, new_height: int) -> None:
     clear()
     print(symbol_image.result, flush=True)
 
-def video_to_symbols(path: str, new_height: int, click_time: int) -> None:
+def video_to_symbols(path: str, new_height: int) -> None:
     try:
         sound_path = handler.FileConverter.mp4_to_wav(path)
         clear()
         
         video = handler.SymbolVideo(path, sound_path, new_height, 200)
         video.start()
-        high_preccision_sleep = handler.HighPrecisionSleep(video.video_fps)
-        clicked = False
+
+        timer_bar = handler.TimerBar(video.total_time, video.width, video.height, "#")
         
+        high_preccision_sleep = handler.HighPrecisionSleep(video.video_fps)
         while True:
-            try:
-                if not clicked and click_time is not None:
-                    if video.current_frame >= (video.video_fps * click_time):
-                        mouse.click("left")
-                        clicked = True
-                        
+            try:    
                 frame = video.get()
                 
                 if keyboard.is_pressed("q") or video._status is False:
                     video.stop()
                     break
                 
-                sys.stdout.write("\033[F" * new_height)
-                sys.stdout.write(frame)
+                sys.stdout.write("\033[F" * new_height * 10 + frame)
                 sys.stdout.write(
-                    f"\n{' ' * 100}\nStatistics:{' ' * 100}\n{' ' * 100}\nFrames: {video.current_frame}/{video.total_frames}{' ' * 100}\n" +\
-                    f"Current FPS: {video.current_fps:.1f}, Render FPS: {video.render_fps:.1f}{' ' * 100}\nBuffer: {video.current_buffer_len}/{video.buffer_size}{' ' * 100}\n" +\
-                    f"Missed frames: {video.missed_frames}{' ' * 100}"
+                    f"\n\n{' ' * 20}\n{timer_bar}{' ' * 20}\n" +\
+                    f"{' ' * 20}\nStatistics:{' ' * 100}\n{' ' * 20}\nFrames: {video.current_frame}/{video.total_frames}{' ' * 20}\n" +\
+                    f"Current FPS: {video.current_fps:.1f}, Render FPS: {video.render_fps:.1f}{' ' * 20}\nBuffer: {video.current_buffer_len}/{video.buffer_size}{' ' * 20}\n" +\
+                    f"Missed frames: {video.missed_frames}{' ' * 20}"
                 )
                 sys.stdout.flush()
                 
                 if video.has_sound:
                     video.play_audio_frame()
-                    
+                
+                timer_bar.n = video.current_time
+                timer_bar.update()
                 high_preccision_sleep.sleep()
             except TypeError as e:
                 video.add_missed_frames()
                 video.play_audio_frame()
                 continue
-
     finally:
         video.stop()
         clear()
@@ -153,7 +150,7 @@ video_to_symbols_command = core.Command(
     "video_to_symbols",
     "Playback video by the ascii symbols",
     video_to_symbols,
-    {"path": str, "new_height": (int, None), "click_time": (int, None)}
+    {"path": str, "new_height": (int, None)}
 )
 
 #############################################

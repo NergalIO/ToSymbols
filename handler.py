@@ -40,6 +40,7 @@ class HighPrecisionSleep:
         if sleep_time > 0:
             time.sleep(sleep_time)
 
+
 class FpsCounter:
     def __init__(self):
         self.st_time = time.time()
@@ -75,6 +76,47 @@ class FpsCounter:
             return self.total_frames / (time.time() - self.st_time)
         except ZeroDivisionError:
             pass
+
+
+class TimerBar:
+    def __init__(self, total: int, width: int, video_height: int, fill: str) -> None:
+        self.total = total
+        self.n = 0
+        
+        self.width = width
+        self.fill = fill
+        
+        self.percent_width = width / 100
+        
+        self.filled_bar = " " * self.width
+        
+        self.prefix = f"{preatty_time(self.n)}"
+        self.bar = f"[{self.filled_bar}]"
+        self.suffix = f"{preatty_time(self.total)}"
+    
+    def get_percent(self) -> int:
+        try:
+            return int((self.n / self.total) * 100)
+        except ZeroDivisionError:
+            return 0
+    
+    def get_percent_with_width(self) -> int:
+        return int(self.get_percent() * self.percent_width)
+    
+    def update(self) -> None:
+        self.prefix = f"{preatty_time(self.n)}"
+        percent = self.get_percent_with_width()
+        self.filled_bar = (self.fill * percent)  + (' ' * (self.width - percent))
+        self.bar = f"[{self.filled_bar}]"
+    
+    def next(self, n: int = 1) -> None | bool:
+        if self.n == self.total:
+            return True
+        self.n += n
+        self.update()
+    
+    def __str__(self) -> str:
+        return f"{self.prefix} {self.bar} {self.suffix}"
 
 
 class FileConverter:
@@ -165,6 +207,14 @@ class SymbolVideo:
         self._missed_frames += 1
     
     @property
+    def height(self) -> int:
+        return self._new_height
+    
+    @property
+    def width(self) -> int:
+        return int((self._new_height / self._video.get(cv2.CAP_PROP_FRAME_WIDTH)) * self._video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    
+    @property
     def has_sound(self) -> bool:
         return self._has_sound
     
@@ -189,6 +239,14 @@ class SymbolVideo:
         return self._video.get(cv2.CAP_PROP_FRAME_COUNT)
     
     @property
+    def total_time(self) -> int:
+        return self.total_frames // self.video_fps - 8
+    
+    @property
+    def current_time(self) -> int:
+        return self.current_frame // self.video_fps
+    
+    @property
     def video_fps(self) -> int:
         return self._video.get(cv2.CAP_PROP_FPS)
     
@@ -203,14 +261,6 @@ class SymbolVideo:
     @property
     def avarage_fps(self) -> float:
         return self._fps_counter.calculate_avarage_fps()
-    
-    def __del__(self) -> None:
-        del self._path
-        del self._new_height
-        del self._video
-        del self._buffer
-        del self._status
-        del self._generator_thread
 
 
 class SymbolImage:
@@ -264,3 +314,31 @@ def to_symbols(frame: np.ndarray) -> np.vectorize:
     avarages: np.ndarray = frame.mean(axis=2, dtype=np.integer)
     return to_symbols(avarages)
 
+
+def preatty_time(time: int) -> str:
+    days = int(time // 86400)
+    hours = int(time // 3600) - (days * 24)
+    minutes = int(time // 60) - (hours * 60)
+    seconds = int(time % 60)
+    
+    result = []
+    
+    if days > 0:
+        result.append(f"{days}")
+    
+    if hours > 1 < 10:
+        result.append(f"0{hours}")
+    elif hours >= 10:
+        result.append(f"{hours}")
+    
+    if minutes < 10:
+        result.append(f"0{minutes}")
+    else:
+        result.append(f"{minutes}")
+    
+    if seconds < 10:
+        result.append(f"0{seconds}")
+    else:
+        result.append(f"{seconds}")
+    
+    return ":".join(result)
