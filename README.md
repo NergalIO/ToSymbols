@@ -1,16 +1,29 @@
 # ToSymbols
 Converting images, camera view, mp4 videos (with sound) to symbols representation
 # Dependencies: numpy, opencv-python, pyaudio, moviepy
+
 # Usage 
+
 ## To start program
-python main.py
-## Program usage
-The program is built on the terminal core, use help to view commands.
-![image](https://github.com/user-attachments/assets/b41c5173-6119-40e8-9ff5-2ed4fda1950e)
-## Command running example:
-text > show_camera
+python main.py --camera/--video [args] [path]
 
-text > video_to_symbols|path=C:/Videos/video.mp4|new_height=128::int
-![image](https://github.com/user-attachments/assets/cc2079a6-2d5c-4285-96cf-6044f0a18e24)
+## Help menu
+### --camera: Converts the camera image into a symbolic view in video format
+### Usage:
 
+python main.py --camera --colorize --new-height=64
 
+#### Arguments:
+
+--new-height: Resizes the original image, if the argument flag, no value, is enabled, the value is set automatically to 128
+--colorize: Outputs the image in color (recommended for use in conjunction with --new-height=64), default = False
+
+### --camera: Converts frames from video into character format and outputs to the console along with audio
+#### Usage:
+
+python main.py --video --colorize --new-height=64 [path]
+
+#### Arguments:
+
+--new-height: Resizes the original image, if the argument flag, no value, is enabled, the value is set automatically to 128
+--colorize: Outputs the image in color (recommended for use in conjunction with --new-height=64), default = False
